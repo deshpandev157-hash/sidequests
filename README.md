@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SideQuest
 
 SideQuest is a dark-themed entertainment discovery platform where users can search for Movies, TV Shows, and Anime, view detailed information, and rate/review individual content. The application utilizes the TMDB API to fetch extensive entertainment data.
@@ -47,3 +48,7 @@ SideQuest is a dark-themed entertainment discovery platform where users can sear
    python -m http.server 8080
    ```
 4. Visit `http://localhost:8080` in your web browser to browse SideQuest!
+=======
+# sidequests
+SideQuest – Movie, TV Show and Anime discovery website with ratings and AI verdict.
+>>>>>>> 99c5c6df019fd3de909fa1d1d6d0d670aca298ad
