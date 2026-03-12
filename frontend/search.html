@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - SideQuest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">SideQuest</a>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="games.html">Games</a>
+            <a href="profile.html">Profile & Stats</a>
+        </nav>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search movies, TV shows..."
+                onkeypress="if(event.key === 'Enter') performSearch()">
+            <button onclick="performSearch()">Search</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="section-title" id="search-title">Search Results</h2>
+        <div id="search-loading" style="text-align:center; padding: 50px;">
+            <p style="font-size: 1.2rem; color: var(--accent-color);">Searching...</p>
+        </div>
+        <div class="grid" id="search-results" style="display: none;"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get('q');
+            
+            if (query) {
+                document.getElementById('searchInput').value = query;
+                document.getElementById('search-title').innerText = `Search Results for "${query}"`;
+            } else {
+                document.getElementById('search-loading').style.display = 'none';
+                document.getElementById('search-title').innerText = "Please enter a search term.";
+                return;
+            }
+
+            try {
+                const results = await api.search(query);
+                
+                document.getElementById('search-loading').style.display = 'none';
+                const grid = document.getElementById('search-results');
+                grid.style.display = 'grid';
+
+                if (results && results.results && results.results.length > 0) {
+                    // Filter out people or unrelated objects, we only want movies/tv
+                    const validResults = results.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+                    
+                    if (validResults.length > 0) {
+                        grid.innerHTML = validResults.map(item => api.createMediaCard(item)).join('');
+                    } else {
+                        grid.innerHTML = '<p>No movies or TV shows found for this query.</p>';
+                    }
+                } else {
+                    grid.innerHTML = '<p>No results found.</p>';
+                }
+            } catch (err) {
+                console.error("Search Error:", err);
+                document.getElementById('search-loading').style.display = 'none';
+                document.getElementById('search-results').style.display = 'block';
+                document.getElementById('search-results').innerHTML = '<p style="color:red;">Failed to load search results. Is the backend running?</p>';
+            }
+        });
+
+        function performSearch() {
+            const q = document.getElementById('searchInput').value;
+            if (q.trim()) {
+                window.location.href = `search.html?q=${encodeURIComponent(q.trim())}`;
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,410 @@
+<!-- details.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SideQuest - Details</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <a href="index.html">SideQuest</a>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="games.html">Games</a>
+            <a href="profile.html">Profile & Stats</a>
+        </nav>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search movies, TV shows..."
+                onkeypress="if(event.key === 'Enter') performSearch()">
+            <button onclick="performSearch()">Search</button>
+        </div>
+    </header>
+
+    <div id="backdrop" class="backdrop-banner"></div>
+
+    <div class="container" id="details-container">
+        <h2 style="text-align:center; margin-top: 50px;">Loading details...</h2>
+    </div>
+
+    <!-- TV Content (Seasons/Episodes) -->
+    <div class="container" id="tv-content-container" style="display: none;">
+        <div id="seasons-section">
+            <h2 class="section-title">Seasons</h2>
+            <div class="seasons-list" id="seasons-list"></div>
+        </div>
+        <div id="episodes-section" style="margin-top: 40px; display: none;">
+            <h2 class="section-title" id="episodes-title">Episodes</h2>
+            <div class="episodes-grid" id="episodes-list"></div>
+        </div>
+    </div>
+
+    <!-- AI Verdict Section -->
+    <div class="container" id="ai-verdict-section" style="margin-top: 40px; display: none;">
+        <h2 class="section-title">AI Verdict 🤖</h2>
+        <div id="ai-debate-container" class="card" style="padding: 20px; background: #1a1a1a; border-left: 4px solid var(--accent-color);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3 style="color: #4caf50; margin-bottom: 10px;">👍 Pros</h3>
+                    <ul id="ai-pros" style="font-size: 0.9em; line-height: 1.6; color: #ccc;"></ul>
+                </div>
+                <div>
+                    <h3 style="color: #f44336; margin-bottom: 10px;">👎 Cons</h3>
+                    <ul id="ai-cons" style="font-size: 0.9em; line-height: 1.6; color: #ccc;"></ul>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
+                <h3 style="color: var(--accent-color); margin-bottom: 10px;">⭐ Final Verdict</h3>
+                <p id="ai-verdict-text" style="font-style: italic; color: #fff;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="container" id="reviews-section" style="margin-top: 40px;">
+        <h2 class="section-title">User Reviews</h2>
+
+        <div class="review-form">
+            <h3>Add a Review</h3>
+            <div style="margin-bottom: 10px;">
+                <label>Rating: </label>
+                <select id="reviewRating">
+                    <option value="10">10 - Masterpiece</option>
+                    <option value="9">9 - Amazing</option>
+                    <option value="8">8 - Great</option>
+                    <option value="7" selected>7 - Good</option>
+                    <option value="6">6 - Fine</option>
+                    <option value="5">5 - Average</option>
+                    <option value="4">4 - Bad</option>
+                    <option value="3">3 - Horrible</option>
+                    <option value="2">2 - Terrible</option>
+                    <option value="1">1 - Unwatchable</option>
+                </select>
+            </div>
+            <textarea id="reviewText" placeholder="Write your thoughts here..."></textarea>
+            <button class="btn" onclick="submitReview()">Post Review</button>
+        </div>
+
+        <div id="reviews-list" style="margin-top: 20px;">
+            <p>Loading reviews...</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let currentId = null;
+        let currentType = null;
+
+        document.addEventListener("DOMContentLoaded", loadDetails);
+
+        async function loadDetails() {
+            const params = new URLSearchParams(window.location.search);
+            currentType = params.get("type");
+            currentId = params.get("id");
+
+            if (!currentType || !currentId) {
+                renderError("Invalid Content ID or Type");
+                return;
+            }
+
+            try {
+                const data = await api.getDetails(currentType, currentId);
+
+                if (!data) {
+                    renderError("Content not found");
+                    return;
+                }
+
+                renderHero(data, currentType);
+                await fetchRating();
+                loadReviews(currentType, currentId);
+
+                if (currentType === "tv") {
+                    loadTVSeasons(currentId);
+                }
+
+                loadAiDebate(currentType, currentId);
+
+                // AI RECOMMENDATIONS: Track Watch History
+                api.addToWatchHistory({
+                    user_id: 1,
+                    content_id: parseInt(currentId),
+                    content_type: currentType
+                });
+
+            } catch (err) {
+                console.error(err);
+                renderError("Failed to connect to the server");
+            }
+        }
+
+        async function loadAiDebate(type, id) {
+            const section = document.getElementById("ai-verdict-section");
+            const prosEl = document.getElementById("ai-pros");
+            const consEl = document.getElementById("ai-cons");
+            const verdictEl = document.getElementById("ai-verdict-text");
+
+            try {
+                const data = await api.getMovieDebate(type, id);
+                if (data) {
+                    section.style.display = "block";
+                    prosEl.innerHTML = data.pros.map(p => `<li>${p}</li>`).join('');
+                    consEl.innerHTML = data.cons.map(c => `<li>${c}</li>`).join('');
+                    verdictEl.innerText = data.verdict;
+                }
+            } catch (err) {
+                console.error("AI Debate load error:", err);
+            }
+        }
+
+        function renderHero(data, type) {
+            const container = document.getElementById("details-container");
+            const backdrop = document.getElementById("backdrop");
+
+            const title = data.title || data.name;
+            document.title = `${title} - SideQuest`;
+
+            if (data.backdrop_path) {
+                backdrop.style.backgroundImage = `url(${api.getImageUrl(data.backdrop_path, 'original')})`;
+            }
+
+            const year = (data.release_date || data.first_air_date || "").split("-")[0];
+            const genres = data.genres ? data.genres.map(g => g.name).join(", ") : "N/A";
+            const rating = data.vote_average ? data.vote_average.toFixed(1) : "N/A";
+            const runtime = data.runtime ? `${data.runtime} min` : (data.episode_run_time && data.episode_run_time.length > 0 ? `${data.episode_run_time[0]} min` : "");
+
+            container.innerHTML = `
+                <div class="details-hero">
+                    <div class="poster-col">
+                        <img src="${api.getImageUrl(data.poster_path)}" alt="${title}">
+                    </div>
+                    <div class="info-col">
+                        <div class="title-section">
+                            <h1>${title} ${year ? `<span style="opacity: 0.6; font-weight: 400;">(${year})</span>` : ""}</h1>
+                            ${data.tagline ? `<p class="tagline">"${data.tagline}"</p>` : ""}
+                        </div>
+
+                        <div class="meta-info">
+                            ${year ? `<span class="badge">${year}</span>` : ""}
+                            ${year ? `<span class="badge">${year}</span>` : ""}
+                            ${runtime ? `<span class="badge">${runtime}</span>` : ""}
+                            <span class="badge">${type.toUpperCase()}</span>
+                        </div>
+
+                        <div class="user-rating-box" style="margin-top: 20px;">
+                            <div class="star-rating" id="star-rating-container">
+                                <input type="radio" id="star10" name="rating" value="10" onclick="submitRating(10)" /><label for="star10" title="10 stars">★</label>
+                                <input type="radio" id="star9" name="rating" value="9" onclick="submitRating(9)" /><label for="star9" title="9 stars">★</label>
+                                <input type="radio" id="star8" name="rating" value="8" onclick="submitRating(8)" /><label for="star8" title="8 stars">★</label>
+                                <input type="radio" id="star7" name="rating" value="7" onclick="submitRating(7)" /><label for="star7" title="7 stars">★</label>
+                                <input type="radio" id="star6" name="rating" value="6" onclick="submitRating(6)" /><label for="star6" title="6 stars">★</label>
+                                <input type="radio" id="star5" name="rating" value="5" onclick="submitRating(5)" /><label for="star5" title="5 stars">★</label>
+                                <input type="radio" id="star4" name="rating" value="4" onclick="submitRating(4)" /><label for="star4" title="4 stars">★</label>
+                                <input type="radio" id="star3" name="rating" value="3" onclick="submitRating(3)" /><label for="star3" title="3 stars">★</label>
+                                <input type="radio" id="star2" name="rating" value="2" onclick="submitRating(2)" /><label for="star2" title="2 stars">★</label>
+                                <input type="radio" id="star1" name="rating" value="1" onclick="submitRating(1)" /><label for="star1" title="1 star">★</label>
+                            </div>
+                            <div class="rating-display">
+                                <div class="rating-avg">⭐ <span id="rating-avg-value">0.0</span></div>
+                                <div class="rating-count"><span id="rating-count-value">0</span> votes</div>
+                            </div>
+                        </div>
+
+                        <div class="overview" style="margin-top: 20px;">
+                            <h3>Overview</h3>
+                            <p>${data.overview || "No description available."}</p>
+                        </div>
+
+                        ${type === 'tv' ? `
+                        <div class="action-buttons">
+                            <a href="characters.html?id=${currentId}&name=${encodeURIComponent(title)}" class="btn">
+                                🕸️ View Character Map
+                            </a>
+                        </div>
+                        ` : ''}
+
+                        <div class="genres" style="margin-top: 20px;">
+                            <p><b>Genres:</b> ${genres}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadTVSeasons(tvId) {
+            const tvContainer = document.getElementById("tv-content-container");
+            const seasonsList = document.getElementById("seasons-list");
+
+            try {
+                const seasons = await api.getSeasons(tvId);
+                if (seasons && seasons.length > 0) {
+                    tvContainer.style.display = "block";
+                    seasonsList.innerHTML = seasons.map(s => `
+                        <div class="season-card" onclick="loadEpisodes(${tvId}, ${s.season_number}, this)">
+                            <div style="font-weight:bold;">${s.name}</div>
+                            <div style="font-size:0.8rem; color:#aaa;">${s.episode_count} Episodes</div>
+                        </div>
+                    `).join("");
+
+                    const firstSeason = seasons.find(s => s.season_number === 1) || seasons[0];
+                    if (firstSeason) {
+                        const firstCard = seasonsList.querySelector('.season-card');
+                        loadEpisodes(tvId, firstSeason.season_number, firstCard);
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading seasons:", err);
+            }
+        }
+
+        async function loadEpisodes(tvId, seasonNumber, element) {
+            const episodesSection = document.getElementById("episodes-section");
+            const episodesList = document.getElementById("episodes-list");
+            const episodesTitle = document.getElementById("episodes-title");
+
+            document.querySelectorAll('.season-card').forEach(c => c.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            episodesSection.style.display = "block";
+            episodesList.innerHTML = "<p>Loading episodes...</p>";
+            episodesTitle.innerText = `Season ${seasonNumber} Episodes`;
+
+            try {
+                const episodes = await api.getEpisodes(tvId, seasonNumber);
+                if (!episodes || episodes.length === 0) {
+                    episodesList.innerHTML = "<p>No episodes found for this season.</p>";
+                    return;
+                }
+
+                episodesList.innerHTML = episodes.map(ep => `
+                    <div class="episode-card" onclick="window.location.href='episode.html?show_id=${tvId}&season=${seasonNumber}&episode=${ep.episode_number}'">
+                        <img src="${api.getImageUrl(ep.still_path)}" alt="${ep.name}" onerror="this.src='https://via.placeholder.com/300x169?text=No+Image'">
+                        <div class="episode-info">
+                            <div class="episode-title">${ep.episode_number}. ${ep.name}</div>
+                            <div class="episode-desc">${ep.overview || "No description available."}</div>
+                        </div>
+                    </div>
+                `).join("");
+            } catch (err) {
+                episodesList.innerHTML = "<p>Failed to load episodes.</p>";
+            }
+        }
+
+        async function loadReviews(type, id) {
+            const list = document.getElementById("reviews-list");
+            try {
+                // Switching from old endpoint to the community module endpoint
+                const reviews = await api.getCommunityReviews(type, id);
+                if (!reviews || reviews.length === 0) {
+                    list.innerHTML = "<p>No reviews yet. Be the first to add one!</p>";
+                    return;
+                }
+
+                list.innerHTML = reviews.map(r => `
+                    <div class="review-item" style="border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 10px; background: rgba(0,0,0,0.3);">
+                        <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span class="username" style="font-weight: bold; color: var(--accent-color);">${r.username}</span>
+                            <span class="rating" style="color: gold;">★ ${r.rating}</span>
+                        </div>
+                        <div class="review-text" style="color: #ccc; margin-bottom: 15px;">${r.review_text}</div>
+                        <div style="font-size: 0.85em; color: #888; display: flex; justify-content: space-between;">
+                            <span>${new Date(r.created_date).toLocaleString()}</span>
+                            <button class="btn" style="padding: 5px 10px; font-size: 0.9em;" onclick="likeReview(${r.id})">👍 Like (${r.like_count})</button>
+                        </div>
+                    </div>
+                `).join("");
+            } catch (err) {
+                list.innerHTML = "<p>Error loading reviews.</p>";
+            }
+        }
+        
+        async function likeReview(reviewId) {
+            const userId = 1; // Default stub user
+            await api.likeReview(reviewId, userId);
+            loadReviews(currentType, currentId); // refresh
+        }
+
+        async function fetchRating() {
+            try {
+                const res = await api.getContentRating(currentType, currentId);
+                if (res) {
+                    document.getElementById('rating-avg-value').innerText = res.average_rating.toFixed(1);
+                    document.getElementById('rating-count-value').innerText = res.total_votes;
+                }
+            } catch (err) {
+                console.error("Failed to fetch custom rating:", err);
+            }
+        }
+
+        async function submitRating(val) {
+            try {
+                const payload = {
+                    content_id: parseInt(currentId),
+                    content_type: currentType,
+                    rating: val
+                };
+                
+                const res = await api.rateContent(payload);
+                if (res) {
+                    // Instantly update UI with new calculated average
+                    document.getElementById('rating-avg-value').innerText = res.average_rating.toFixed(1);
+                    document.getElementById('rating-count-value').innerText = res.total_votes;
+                }
+            } catch (err) {
+                console.error("Failed to submit rating:", err);
+                alert("Failed to save rating. Please try again later.");
+            }
+        }
+
+        async function submitReview() {
+            const text = document.getElementById("reviewText").value;
+            const ratingSelector = document.getElementById("reviewRating").value; // Assuming rating is bound
+
+            if (!text.trim()) {
+                alert("Please write something first!");
+                return;
+            }
+
+            const reviewData = {
+                user_id: 1, // Mock user ID for now
+                content_id: parseInt(currentId),
+                content_type: currentType,
+                rating: parseFloat(ratingSelector),
+                review_text: text
+            };
+
+            const result = await api.submitCommunityReview(reviewData);
+            if (result) {
+                document.getElementById("reviewText").value = "";
+                loadReviews(currentType, currentId);
+                alert("Review posted!");
+            } else {
+                alert("Failed to post review. Is the server running?");
+            }
+        }
+
+        function renderError(msg) {
+            document.getElementById("details-container").innerHTML = `
+                <div style="text-align:center; margin-top: 50px;">
+                    <h2 style="color: #ff4444;">${msg}</h2>
+                    <p>Try going back to <a href="index.html" style="color: var(--accent-color);">Home</a></p>
+                </div>
+            `;
+        }
+
+        function performSearch() {
+            const query = document.getElementById("searchInput").value;
+            if (query.trim() === "") return;
+            window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+        }
+    </script>
+</body>
+
+</html>

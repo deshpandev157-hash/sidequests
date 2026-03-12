@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Achievements - SideQuest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> <!-- Using Material Icons for achievements -->
+</head>
+<body>
+    <header>
+        <div class="logo"><a href="index.html">SideQuest</a></div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="games.html">Games</a>
+            <a href="profile.html" style="color: var(--accent-color);">Profile & Stats</a>
+        </nav>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search..." onkeypress="if(event.key === 'Enter') performSearch()">
+            <button onclick="performSearch()">Search</button>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 40px;">
+        <div id="profile-loading" style="text-align:center;">
+            <p style="font-size: 1.2rem; color: var(--accent-color);">Loading profile data...</p>
+        </div>
+
+        <div id="profile-content" style="display: none;">
+            
+            <div class="profile-header">
+                <div>
+                    <h1 style="font-size: 2.5rem; margin-bottom: 5px;">Your Profile</h1>
+                    <p style="color: #aaa;">Keep watching to unlock more achievements!</p>
+                </div>
+                <div class="stats-grid" style="margin-left: auto;">
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat-episodes">0</div>
+                        <div class="stat-label">Episodes Watched</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat-shows">0</div>
+                        <div class="stat-label">Unique Shows</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Achievements Log</h2>
+            <div class="achievements-grid" id="achievements-list" style="margin-bottom: 50px;">
+                <!-- Filled by JS -->
+            </div>
+
+            <h2 class="section-title">Current Challenges 🎯</h2>
+            <div id="challenges-list" class="achievements-grid" style="margin-bottom: 50px;">
+                <!-- Filled by JS -->
+            </div>
+
+            <h2 class="section-title">Recently Watched</h2>
+            <div id="history-list" style="max-width: 800px;">
+                <!-- Filled by JS -->
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadProfile);
+
+        async function loadProfile() {
+            try {
+                // Feature 4: Using User ID 1 normally, but can be adapted for auth
+                const data = await api.getUserAchievements(1);
+                
+                document.getElementById('profile-loading').style.display = 'none';
+                document.getElementById('profile-content').style.display = 'block';
+
+                if (!data) return;
+
+                // Update Stats
+                document.getElementById('stat-episodes').innerText = data.total_episodes_watched || 0;
+                document.getElementById('stat-shows').innerText = data.unique_shows_watched || 0;
+
+                // Render Achievements
+                const achList = document.getElementById('achievements-list');
+                const achievements = data.achievements || [];
+                
+                if (achievements.length === 0) {
+                    achList.innerHTML = "<p>No achievements data found.</p>";
+                } else {
+                    achList.innerHTML = achievements.map(ach => `
+                        <div class="achievement-card ${ach.unlocked ? 'unlocked' : 'locked'}">
+                            <div class="achievement-icon">
+                                <span class="material-icons">${ach.icon || 'star'}</span>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 5px;">${ach.title}</h3>
+                                <p style="font-size: 0.85rem; color: #ccc; margin:0;">${ach.description}</p>
+                                ${!ach.unlocked && ach.progress ? `<div style="font-size:0.8rem; margin-top:5px; color:var(--accent-color); font-weight:bold;">Progress: ${ach.progress}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Render Challenges
+                loadChallenges();
+
+                // Render History
+                const histList = document.getElementById('history-list');
+                const history = data.recent_watches || [];
+
+                if (history.length === 0) {
+                    histList.innerHTML = "<p>You haven't watched any episodes yet.</p>";
+                } else {
+                    histList.innerHTML = history.map(h => {
+                        const date = h.watched_at ? new Date(h.watched_at).toLocaleDateString() : 'Recently';
+                        return `
+                            <div class="history-item">
+                                <div>
+                                    <h4 style="margin:0 0 5px 0;"><a href="details.html?type=tv&id=${h.show_id}" style="color:white; text-decoration:none;">${h.show_name || 'TV Show'}</a></h4>
+                                    <div style="font-size: 0.9rem; color: #aaa;">Season ${h.season} Episode ${h.episode}: <a href="episode.html?show_id=${h.show_id}&season=${h.season}&episode=${h.episode}" style="color:#aaa; text-decoration:none;">${h.episode_name}</a></div>
+                                </div>
+                                <div style="font-size: 0.8rem; color: #777;">${date}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('profile-loading').innerHTML = "<p style='color:red;'>Failed to load profile data.</p>";
+            }
+        }
+
+        async function loadChallenges() {
+            const container = document.getElementById("challenges-list");
+            try {
+                const data = await api.getChallenges();
+                if (data && data.length > 0) {
+                    container.innerHTML = data.map(ch => {
+                        const percent = Math.min(100, (ch.completed_count / ch.required_count) * 100);
+                        const isDone = ch.completed_count >= ch.required_count;
+                        return `
+                            <div class="card" style="padding: 20px; background: #1a1a1a; cursor: default;">
+                                <h3 style="margin-bottom: 10px;">${ch.title}</h3>
+                                <p style="font-size: 0.9em; color: #aaa; margin-bottom: 15px;">${ch.description}</p>
+                                
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85em; font-weight: bold; margin-bottom: 5px;">
+                                    <span>${ch.completed_count} / ${ch.required_count} Watched</span>
+                                    <span>${Math.round(percent)}%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" style="width: ${percent}%"></div>
+                                </div>
+
+                                ${isDone ? `
+                                    <div class="challenge-completed" style="margin-top:10px; color:var(--accent-color); font-weight:bold; text-align:center;">
+                                        🎉 Completed
+                                    </div>
+                                ` : `
+                                    <button class="btn" onclick="updateChallenge(${ch.id})" style="width: 100%; border-radius: 5px; margin-top: 10px; font-size: 0.85em; padding: 8px;">
+                                        Mark Watched
+                                    </button>
+                                `}
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (e) {
+                container.innerHTML = "<p>Error loading challenges.</p>";
+            }
+        }
+
+        async function updateChallenge(id) {
+            try {
+                const res = await api.updateChallengeProgress(id);
+                if (res) {
+                    loadChallenges(); // Refresh UI
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function performSearch() {
+            const q = document.getElementById('searchInput').value;
+            if (q.trim()) window.location.href = `search.html?q=${encodeURIComponent(q.trim())}`;
+        }
+    </script>
+</body>
+</html>

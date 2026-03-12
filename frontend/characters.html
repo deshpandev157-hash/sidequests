@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Map - SideQuest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Vis.js Network for Feature 3 -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo"><a href="index.html">SideQuest</a></div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="games.html">Games</a>
+            <a href="profile.html">Profile & Stats</a>
+        </nav>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search..." onkeypress="if(event.key === 'Enter') performSearch()">
+            <button onclick="performSearch()">Search</button>
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h1 class="section-title" id="page-title" style="margin: 0;">Character Relationship Map</h1>
+                <p style="color: #aaa; margin-top: 5px;">Drag nodes to explore character connections</p>
+            </div>
+            <a id="back-link" href="#" class="btn">← Back to Show</a>
+        </div>
+
+        <div id="network-container">
+            <h3 id="network-loading" style="text-align:center; padding: 100px; color: var(--accent-color);">Constructing Map...</h3>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadCharacterMap);
+
+        async function loadCharacterMap() {
+            const params = new URLSearchParams(window.location.search);
+            const showId = params.get('id');
+            const showName = params.get('name') || '';
+
+            if (showName) {
+                document.getElementById('page-title').innerText = `${showName} - character Map`;
+            }
+
+            if (!showId) {
+                document.getElementById('network-container').innerHTML = "<h3 style='padding:50px; text-align:center;'>No Show Selected.</h3>";
+                return;
+            }
+
+            document.getElementById('back-link').href = `details.html?type=tv&id=${showId}`;
+
+            try {
+                const data = await api.getCharacters(showId);
+                const characters = data.characters || [];
+
+                if (characters.length === 0) {
+                    document.getElementById('network-container').innerHTML = "<h3 style='padding:50px; text-align:center;'>No character data found for this show.</h3>";
+                    return;
+                }
+
+                document.getElementById('network-loading').style.display = 'none';
+
+                // Prepare nodes and edges for Vis.js
+                const nodes = new vis.DataSet();
+                const edges = new vis.DataSet();
+
+                // Map names to node IDs to prevent duplicates
+                const nodeMap = {};
+
+                characters.forEach((char, index) => {
+                    const charId = index + 1;
+                    nodeMap[char.name] = charId;
+
+                    nodes.add({
+                        id: charId,
+                        label: char.name + '\n(' + char.character + ')',
+                        shape: char.image ? 'circularImage' : 'dot',
+                        image: char.image,
+                        size: char.image ? 40 : 20,
+                        color: {
+                            background: '#1e1e1e',
+                            border: '#9409e5',
+                            highlight: { border: '#ff007b', background: '#333' }
+                        },
+                        font: { color: '#ffffff', size: 14, strokeWidth: 3, strokeColor: '#000000' }
+                    });
+                });
+
+                // Add edges based on relationships
+                characters.forEach(char => {
+                    const sourceId = nodeMap[char.name];
+                    const rels = char.relationships || [];
+
+                    rels.forEach(rel => {
+                        const targetId = nodeMap[rel.target];
+                        if (targetId && sourceId !== targetId) {
+                            
+                            // Color mapping based on relationship type
+                            let edgeColor = '#666';
+                            let edgeDashes = false;
+                            
+                            if (rel.type === 'family') edgeColor = '#ffbb00';
+                            if (rel.type === 'ally' || rel.type === 'friend') edgeColor = '#00ff88';
+                            if (rel.type === 'rival') { edgeColor = '#ff4444'; edgeDashes = true; }
+                            
+                            edges.add({
+                                from: sourceId,
+                                to: targetId,
+                                label: rel.type,
+                                font: { size: 12, color: '#aaa', strokeWidth: 2, strokeColor: '#000', align: 'middle' },
+                                color: { color: edgeColor, highlight: '#fff' },
+                                dashes: edgeDashes,
+                                length: 250
+                            });
+                        }
+                    });
+                });
+
+                // Create a network
+                const container = document.getElementById('network-container');
+                const networkData = { nodes: nodes, edges: edges };
+                const options = {
+                    physics: {
+                        solver: 'forceAtlas2Based',
+                        forceAtlas2Based: {
+                            gravitationalConstant: -100,
+                            centralGravity: 0.01,
+                            springLength: 200,
+                            springConstant: 0.08
+                        },
+                        stabilization: { iterations: 150 }
+                    },
+                    interaction: {
+                        hover: true,
+                        tooltipDelay: 200
+                    },
+                    edges: {
+                        smooth: { type: 'continuous' }
+                    }
+                };
+
+                const network = new vis.Network(container, networkData, options);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('network-container').innerHTML = "<h3 style='padding:50px; text-align:center;'>Error generating map.</h3>";
+            }
+        }
+
+        function performSearch() {
+            const q = document.getElementById('searchInput').value;
+            if (q.trim()) window.location.href = `search.html?q=${encodeURIComponent(q.trim())}`;
+        }
+    </script>
+</body>
+</html>

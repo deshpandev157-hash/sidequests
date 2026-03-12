@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games - SideQuest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        .games-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        .games-nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+        .games-nav a:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+        .blur-game-container {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #blurImage {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: filter 0.5s ease;
+            background: #000;
+        }
+        .category-btns {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            padding: 8px 15px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .category-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        .attempts-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #333;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: gold;
+            margin-bottom: 10px;
+        }
+
+        /* SCENE GUESS GAME STYLES */
+        .scene-game-container {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .scene-image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #000;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #sceneImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+        }
+        .scene-reveal-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(148, 9, 229, 0.9);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo"><a href="index.html">SideQuest</a></div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="games.html" style="color: var(--accent-color);">Games</a>
+            <a href="profile.html">Profile & Stats</a>
+        </nav>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search..." onkeypress="if(event.key === 'Enter') performSearch()">
+            <button onclick="performSearch()">Search</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="games-nav">
+            <a href="#ai-random-picker">Random Picker</a>
+            <a href="#ai-guess-game">Guess the Movie</a>
+            <a href="#ai-daily-quiz">Daily Quiz</a>
+            <a href="#blur-guess-challenge">Blur Guess Challenge</a>
+            <a href="#scene-guess-game">Scene Guess Game</a>
+        </div>
+
+        <h1 style="text-align: center; margin-bottom: 50px;">Interactive Games 🎮</h1>
+
+        <!-- BLUR GUESS CHALLENGE -->
+        <div id="blur-guess-challenge" style="margin-top: 60px; scroll-margin-top: 100px;">
+            <h2 class="section-title">Blur Guess Challenge 🖼️</h2>
+            <div class="card pulsate-ai" style="padding: 40px; background: #1a1a1a;">
+                <div class="blur-game-container">
+                    <div class="category-btns">
+                        <button class="category-btn active" onclick="setBlurCategory('hollywood', this)">Hollywood</button>
+                        <button class="category-btn" onclick="setBlurCategory('bollywood', this)">Bollywood</button>
+                        <button class="category-btn" onclick="setBlurCategory('tv', this)">TV Shows</button>
+                        <button class="category-btn" onclick="setBlurCategory('anime', this)">Anime</button>
+                    </div>
+
+                    <div id="blur-game-content">
+                        <div class="score-display">Score: <span id="blur-score">0</span></div>
+                        <div class="attempts-badge">Attempts Left: <span id="blur-attempts">4</span></div>
+                        
+                        <div style="position: relative; overflow: hidden; border-radius: 10px;">
+                            <img id="blurImage" src="" alt="Blurred Challenge" style="filter: blur(40px);">
+                            <div id="blur-reveal-overlay" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); padding:10px 20px; border-radius:5px; border-left: 4px solid var(--accent-color);">
+                                <span id="blur-correct-answer"></span>
+                            </div>
+                        </div>
+
+                        <div id="blur-input-section" style="margin-top: 20px;">
+                            <div style="display: flex; gap: 10px; max-width: 500px; margin: 0 auto;">
+                                <input type="text" id="blur-guess-input" placeholder="Heavily blurred! What is it?" 
+                                    style="flex: 1; padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 5px;">
+                                <button class="btn" onclick="submitBlurGuess()">Submit Guess</button>
+                            </div>
+                            <p id="blur-feedback" style="margin-top: 15px; font-weight: bold;"></p>
+                        </div>
+
+                        <button id="blur-next-btn" class="btn" style="display: none; width: 100%; margin-top: 20px;" onclick="loadBlurChallenge()">Next Challenge ➡️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCENE GUESS GAME -->
+        <div id="scene-guess-game" style="margin-top: 80px; scroll-margin-top: 100px;">
+            <h2 class="section-title">Scene Guess Game 🎬</h2>
+            <div class="card pulsate-ai" style="padding: 40px; background: #1a1a1a;">
+                <div class="scene-game-container">
+                    <div class="category-btns">
+                        <button class="category-btn scene-cat active" onclick="setSceneCategory('hollywood', this)">Hollywood</button>
+                        <button class="category-btn scene-cat" onclick="setSceneCategory('bollywood', this)">Bollywood</button>
+                        <button class="category-btn scene-cat" onclick="setSceneCategory('tv', this)">TV Shows</button>
+                        <button class="category-btn scene-cat" onclick="setSceneCategory('anime', this)">Anime</button>
+                    </div>
+
+                    <div id="scene-game-content">
+                        <div class="attempts-badge">Attempts Left: <span id="scene-attempts">4</span></div>
+                        
+                        <div class="scene-image-wrapper">
+                            <img id="sceneImage" src="" alt="Scene Challenge">
+                            <div id="scene-reveal-overlay" class="scene-reveal-overlay">
+                                Final Scene: <span id="scene-correct-answer"></span>
+                            </div>
+                        </div>
+
+                        <div id="scene-input-section">
+                            <div style="display: flex; gap: 10px; max-width: 500px; margin: 0 auto;">
+                                <input type="text" id="scene-guess-input" placeholder="What's this scene from?" 
+                                    style="flex: 1; padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 5px;">
+                                <button class="btn" onclick="submitSceneGuess()">Submit Guess</button>
+                            </div>
+                            <p id="scene-feedback" style="margin-top: 15px; font-weight: bold;"></p>
+                        </div>
+
+                        <button id="scene-next-btn" class="btn" style="display: none; width: 100%; margin-top: 20px;" onclick="loadSceneChallenge()">Next Scene ➡️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI RANDOM PICKER -->
+        <div id="ai-random-picker" style="margin-top: 80px; scroll-margin-top: 100px;">
+            <h2 class="section-title" style="color: var(--accent-color);">AI Random Movie Picker 🎲</h2>
+            <div class="card pulsate-ai" style="padding: 30px; text-align: center; background: rgba(148,9,229,0.05); border: 1px dashed var(--accent-color);">
+                <button class="btn" onclick="pickRandomMovie()">✨ Pick Something For Me</button>
+                <div id="random-movie-display" style="margin-top: 20px; display: none;"></div>
+            </div>
+        </div>
+
+        <!-- AI GUESS GAME -->
+        <div id="ai-guess-game" style="margin-top: 80px; scroll-margin-top: 100px;">
+            <h2 class="section-title">Guess the Movie 🧩</h2>
+            <div class="card pulsate-ai" style="padding: 30px; background: #1a1a1a;">
+                <div id="guess-clue-container">
+                    <p id="guess-clue-text" style="font-size: 1.2em; margin-bottom: 20px; font-style: italic;"></p>
+                    <div id="guess-input-group" style="display: flex; gap: 10px;">
+                        <input type="text" id="guess-answer" placeholder="Type your guess..." style="flex: 1; padding: 10px; background: #333; border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 5px;">
+                        <button class="btn" id="guess-submit-btn" onclick="submitGuess()">Submit</button>
+                        <button class="btn" id="guess-reveal-btn" style="background: #444; box-shadow: none;" onclick="revealGuessAnswer()">Reveal Answer</button>
+                    </div>
+                    <p id="guess-result" style="margin-top: 15px; font-weight: bold;"></p>
+                </div>
+                <button class="btn" id="new-game-btn" style="display: none; margin-top: 10px; width: 100%;" onclick="loadGuessGame()">Next Puzzle ➡️</button>
+            </div>
+        </div>
+
+        <!-- AI DAILY QUIZ -->
+        <div id="ai-daily-quiz" style="margin-top: 80px; scroll-margin-top: 100px; margin-bottom: 100px;">
+            <h2 class="section-title">Daily Movie Quiz 🧠</h2>
+            <div class="card pulsate-ai" style="padding: 30px; background: #1a1a1a;">
+                <p id="quiz-question" style="font-size: 1.1em; margin-bottom: 20px; font-weight: bold;"></p>
+                <div id="quiz-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+                <div id="quiz-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <p id="quiz-result" style="font-weight: bold; margin: 0;"></p>
+                    <button class="btn" id="new-quiz-btn" style="display: none; font-size: 0.8em;" onclick="generateNewQuiz()">Generate New Quiz ✨</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // --- SHARED GLOBALS ---
+        function performSearch() {
+            const q = document.getElementById('searchInput').value;
+            if (q.trim()) window.location.href = `search.html?q=${encodeURIComponent(q.trim())}`;
+        }
+
+        // --- BLUR GUESS CHALLENGE LOGIC ---
+        let blurCategory = 'hollywood';
+        let blurAttempts = 4;
+        let blurScore = 0;
+        let currentBlurItem = null;
+        const blurLevels = [40, 25, 12, 5, 0]; // Levels of blur for each step
+
+        async function setBlurCategory(cat, btn) {
+            blurCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadBlurChallenge();
+        }
+
+        async function loadBlurChallenge() {
+            const img = document.getElementById("blurImage");
+            const feedback = document.getElementById("blur-feedback");
+            const input = document.getElementById("blur-guess-input");
+            const nextBtn = document.getElementById("blur-next-btn");
+            const overlay = document.getElementById("blur-reveal-overlay");
+            const inputSection = document.getElementById("blur-input-section");
+            const attemptsEl = document.getElementById("blur-attempts");
+
+            blurAttempts = 4;
+            attemptsEl.innerText = blurAttempts;
+            feedback.innerText = "";
+            input.value = "";
+            input.disabled = false;
+            nextBtn.style.display = "none";
+            overlay.style.display = "none";
+            inputSection.style.display = "block";
+            img.style.filter = `blur(${blurLevels[0]}px)`;
+
+            try {
+                const item = await api.getBlurGuessChallenge(blurCategory);
+                if (item) {
+                    currentBlurItem = item;
+                    img.src = api.getImageUrl(item.image, 'original');
+                }
+            } catch (e) {
+                feedback.innerText = "Error loading challenge.";
+            }
+        }
+
+        async function submitBlurGuess() {
+            const input = document.getElementById("blur-guess-input");
+            const feedback = document.getElementById("blur-feedback");
+            const img = document.getElementById("blurImage");
+            const attemptsEl = document.getElementById("blur-attempts");
+            const scoreEl = document.getElementById("blur-score");
+            
+            const guess = input.value.trim().toLowerCase();
+            if (!guess || !currentBlurItem) return;
+
+            const answer = currentBlurItem.title.toLowerCase();
+
+            if (guess === answer) {
+                // Correct!
+                feedback.innerHTML = "Correct! 🎉";
+                feedback.style.color = "#4caf50";
+                img.style.filter = "blur(0px)";
+                
+                // Add score: 50 points if guessed on 1st attempt, down to 10
+                const points = [50, 30, 20, 10][4 - blurAttempts];
+                blurScore += points;
+                scoreEl.innerText = blurScore;
+                
+                finishBlurGame();
+            } else {
+                // Wrong
+                blurAttempts--;
+                attemptsEl.innerText = blurAttempts;
+                
+                if (blurAttempts > 0) {
+                    feedback.innerText = "Incorrect! The image is getting clearer...";
+                    feedback.style.color = "#f44336";
+                    img.style.filter = `blur(${blurLevels[4 - blurAttempts]}px)`;
+                } else {
+                    // Game Over
+                    feedback.innerText = "Attempts finished!";
+                    feedback.style.color = "#f44336";
+                    img.style.filter = "blur(0px)";
+                    document.getElementById("blur-reveal-overlay").style.display = "block";
+                    document.getElementById("blur-correct-answer").innerHTML = `Movie: <b>${currentBlurItem.title}</b>`;
+                    finishBlurGame();
+                }
+            }
+        }
+
+        function finishBlurGame() {
+            document.getElementById("blur-guess-input").disabled = true;
+            document.getElementById("blur-next-btn").style.display = "block";
+        }
+
+        // --- SCENE GUESS GAME LOGIC ---
+        let sceneCategory = 'hollywood';
+        let sceneAttempts = 4;
+        let currentSceneItem = null;
+        const zoomLevels = [4.5, 2.8, 1.6, 1.0]; // Zoom scales for each step
+
+        async function setSceneCategory(cat, btn) {
+            sceneCategory = cat;
+            document.querySelectorAll('.scene-cat').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadSceneChallenge();
+        }
+
+        async function loadSceneChallenge() {
+            const img = document.getElementById("sceneImage");
+            const feedback = document.getElementById("scene-feedback");
+            const input = document.getElementById("scene-guess-input");
+            const nextBtn = document.getElementById("scene-next-btn");
+            const overlay = document.getElementById("scene-reveal-overlay");
+            const inputSection = document.getElementById("scene-input-section");
+            const attemptsEl = document.getElementById("scene-attempts");
+
+            sceneAttempts = 4;
+            attemptsEl.innerText = sceneAttempts;
+            feedback.innerText = "";
+            input.value = "";
+            input.disabled = false;
+            nextBtn.style.display = "none";
+            overlay.style.display = "none";
+            inputSection.style.display = "block";
+            
+            // Start heavily zoomed in
+            img.style.transform = `scale(${zoomLevels[0]})`;
+
+            try {
+                const item = await api.getSceneGuessChallenge(sceneCategory);
+                if (item) {
+                    currentSceneItem = item;
+                    // Use original size for better zoom quality
+                    img.src = api.getImageUrl(item.image, 'original');
+                }
+            } catch (e) {
+                feedback.innerText = "Error loading scene.";
+            }
+        }
+
+        async function submitSceneGuess() {
+            const input = document.getElementById("scene-guess-input");
+            const feedback = document.getElementById("scene-feedback");
+            const img = document.getElementById("sceneImage");
+            const attemptsEl = document.getElementById("scene-attempts");
+            
+            const guess = input.value.trim().toLowerCase();
+            if (!guess || !currentSceneItem) return;
+
+            const answer = currentSceneItem.title.toLowerCase();
+
+            if (guess === answer) {
+                feedback.innerHTML = "Correct! 🎉";
+                feedback.style.color = "#4caf50";
+                img.style.transform = "scale(1.0)";
+                finishSceneGame();
+            } else {
+                sceneAttempts--;
+                attemptsEl.innerText = sceneAttempts;
+                
+                if (sceneAttempts > 0) {
+                    feedback.innerText = "Wrong! Zooming out...";
+                    feedback.style.color = "#f44336";
+                    img.style.transform = `scale(${zoomLevels[4 - sceneAttempts]})`;
+                } else {
+                    feedback.innerText = "Game Over!";
+                    feedback.style.color = "#f44336";
+                    img.style.transform = "scale(1.0)";
+                    const overlay = document.getElementById("scene-reveal-overlay");
+                    overlay.style.display = "block";
+                    document.getElementById("scene-correct-answer").innerText = currentSceneItem.title;
+                    finishSceneGame();
+                }
+            }
+        }
+
+        function finishSceneGame() {
+            document.getElementById("scene-guess-input").disabled = true;
+            document.getElementById("scene-next-btn").style.display = "block";
+        }
+
+        // --- AI RANDOM PICKER ---
+        async function pickRandomMovie() {
+            const display = document.getElementById("random-movie-display");
+            display.style.display = "block";
+            display.innerHTML = "<p>Analyzing your taste...</p>";
+
+            try {
+                const item = await api.getAIRandomMovie();
+                if (item) {
+                    display.innerHTML = `
+                        <div style="display: flex; gap: 20px; text-align: left; align-items: start; margin-top:20px;">
+                            <img src="${api.getImageUrl(item.poster)}" style="width: 150px; border-radius: 10px;">
+                            <div>
+                                <h3 style="margin-bottom: 5px;">${item.title} (${item.year})</h3>
+                                <div style="color: gold; margin-bottom: 10px;">★ ${item.rating}</div>
+                                <p style="font-size: 0.9em; color: #aaa; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; border-left: 3px solid var(--accent-color);">
+                                    <b>AI Logic:</b> ${item.ai_reason}
+                                </p>
+                                <button class="btn" style="margin-top: 15px;" onclick="window.location.href='details.html?type=movie&id=${item.id}'">View Details</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                display.innerHTML = "<p>Error picking movie.</p>";
+            }
+        }
+
+        // --- AI GUESS GAME ---
+        let currentGuessId = null;
+        async function loadGuessGame() {
+            const text = document.getElementById("guess-clue-text");
+            const res = document.getElementById("guess-result");
+            const newBtn = document.getElementById("new-game-btn");
+            const input = document.getElementById("guess-answer");
+            const submitBtn = document.getElementById("guess-submit-btn");
+            const revealBtn = document.getElementById("guess-reveal-btn");
+
+            res.innerText = "";
+            res.className = "";
+            newBtn.style.display = "none";
+            input.value = "";
+            input.disabled = false;
+            submitBtn.disabled = false;
+            revealBtn.disabled = false;
+            text.innerText = "Generating clue...";
+
+            try {
+                const game = await api.getGuessGame();
+                if (game) {
+                    currentGuessId = game.id;
+                    text.innerText = `Clue (${game.clue_type}): ${game.clue_text}`;
+                }
+            } catch (e) {
+                text.innerText = "Error loading game.";
+            }
+        }
+
+        async function submitGuess() {
+            const input = document.getElementById("guess-answer");
+            const res = document.getElementById("guess-result");
+            const ans = input.value.trim();
+
+            if (!ans || !currentGuessId) return;
+
+            try {
+                const data = await api.submitGuessAnswer(currentGuessId, ans);
+                if (data.correct) {
+                    res.innerHTML = `✅ Perfect! It was <b>${data.correct_title}</b>.`;
+                    res.style.color = "#4caf50";
+                    res.className = "feedback-msg bounce";
+                    finishGuessGame();
+                } else {
+                    res.innerHTML = `❌ Wrong guess! Try again or reveal answer.`;
+                    res.style.color = "#f44336";
+                    res.className = "feedback-msg";
+                }
+            } catch (e) {
+                res.innerText = "Error checking answer.";
+            }
+        }
+
+        async function revealGuessAnswer() {
+            const res = document.getElementById("guess-result");
+            try {
+                const data = await api.submitGuessAnswer(currentGuessId, "___REVEAL___");
+                res.innerHTML = `🎬 Correct Answer: <b>${data.correct_title}</b>`;
+                res.style.color = "var(--accent-color)";
+                res.className = "feedback-msg bounce";
+                finishGuessGame();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function finishGuessGame() {
+            document.getElementById("guess-answer").disabled = true;
+            document.getElementById("guess-submit-btn").disabled = true;
+            document.getElementById("guess-reveal-btn").disabled = true;
+            document.getElementById("new-game-btn").style.display = "block";
+            document.getElementById("new-game-btn").className = "btn next-btn";
+        }
+
+        // --- AI DAILY QUIZ ---
+        let currentQuizId = null;
+        async function loadDailyQuiz() {
+            const qEl = document.getElementById("quiz-question");
+            const optsEl = document.getElementById("quiz-options");
+            const resEl = document.getElementById("quiz-result");
+            const newBtn = document.getElementById("new-quiz-btn");
+
+            qEl.innerText = "Loading today's quiz...";
+            optsEl.innerHTML = "";
+            resEl.innerText = "";
+            if (newBtn) newBtn.style.display = "none";
+
+            try {
+                const quiz = await api.getDailyQuiz();
+                if (quiz) {
+                    currentQuizId = quiz.id;
+                    qEl.innerText = quiz.question;
+                    optsEl.innerHTML = Object.entries(quiz.options).map(([key, val]) => `
+                        <div class="quiz-option" onclick="submitQuizAnswer('${key}', this)">
+                            <b>${key})</b> ${val}
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                qEl.innerText = "Error loading quiz.";
+            }
+        }
+
+        async function generateNewQuiz() {
+            const qEl = document.getElementById("quiz-question");
+            qEl.innerText = "Generating new challenge...";
+            const optsEl = document.getElementById("quiz-options");
+            optsEl.innerHTML = "";
+            try {
+                const quiz = await api.generateNewQuiz();
+                if (quiz) {
+                    currentQuizId = quiz.id;
+                    qEl.innerText = quiz.question;
+                    optsEl.innerHTML = Object.entries(quiz.options).map(([key, val]) => `
+                        <div class="quiz-option" onclick="submitQuizAnswer('${key}', this)">
+                            <b>${key})</b> ${val}
+                        </div>
+                    `).join('');
+                    document.getElementById("quiz-result").innerText = "";
+                    document.getElementById("new-quiz-btn").style.display = "none";
+                }
+            } catch (e) {
+                console.error("Quiz generation error:", e);
+            }
+        }
+
+        async function submitQuizAnswer(ans, element) {
+            if (!currentQuizId) return;
+            const allOpts = document.querySelectorAll(".quiz-option");
+            allOpts.forEach(o => o.onclick = null);
+            element.classList.add("selected");
+
+            try {
+                const data = await api.submitQuizAnswer(currentQuizId, ans);
+                const resEl = document.getElementById("quiz-result");
+                if (data.correct) {
+                    resEl.innerHTML = "✅ Correct Answer!";
+                    resEl.style.color = "#4caf50";
+                    element.classList.add("correct");
+                } else {
+                    resEl.innerHTML = `❌ Incorrect. The correct answer was <b>${data.correct_text}</b>.`;
+                    resEl.style.color = "#f44336";
+                    element.classList.add("wrong");
+                }
+                resEl.className = "feedback-msg bounce";
+                document.getElementById("new-quiz-btn").style.display = "block";
+                document.getElementById("new-quiz-btn").className = "btn next-btn";
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBlurChallenge();
+            loadSceneChallenge();
+            loadGuessGame();
+            loadDailyQuiz();
+        });
+    </script>
+</body>
+</html>
