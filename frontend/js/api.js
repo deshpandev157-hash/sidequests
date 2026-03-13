@@ -144,7 +144,9 @@ const api = {
 
         return `
             <div class="card" onclick="window.location.href='details.html?type=${type}&id=${item.id}'">
-                <img src="${this.getImageUrl(item.poster_path)}" alt="${title.replace(/"/g, '&quot;')}">
+                <img src="${item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://placehold.co/500x750?text=No+Poster'}"
+onerror="this.onerror=null;this.src='https://placehold.co/500x750?text=No+Poster';"
+alt="${title.replace(/"/g, '&quot;')}">
                 <div class="card-content">
                     <div class="card-title">${title}</div>
                     <div class="card-meta">
