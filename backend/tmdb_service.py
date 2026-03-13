@@ -22,6 +22,21 @@ else:
 
 BASE_URL = "https://api.themoviedb.org/3"
 
+# =========================
+# IMAGE BASE URLS
+# =========================
+
+IMAGE_BASE = "https://image.tmdb.org/t/p"
+POSTER_SIZE = "w500"
+PROFILE_SIZE = "w185"
+BACKDROP_SIZE = "original"
+
+
+def get_image_url(path, size=POSTER_SIZE):
+    if not path:
+        return None
+    return f"{IMAGE_BASE}/{size}{path}"
+
 
 # =========================
 # GENERIC TMDB REQUEST
@@ -58,8 +73,13 @@ def tmdb_request(endpoint, params=None):
 def get_trending(media_type="all", time_window="day"):
 
     data = tmdb_request(f"/trending/{media_type}/{time_window}")
+    results = data.get("results", [])
 
-    return data
+    for item in results:
+        item["poster_path"] = get_image_url(item.get("poster_path"))
+        item["backdrop_path"] = get_image_url(item.get("backdrop_path"), BACKDROP_SIZE)
+
+    return {"results": results}
 
 
 # =========================
@@ -73,7 +93,13 @@ def search_content(query):
         "include_adult": False
     }
 
-    return tmdb_request("/search/multi", params)
+    data = tmdb_request("/search/multi", params)
+    results = data.get("results", [])
+
+    for item in results:
+        item["poster_path"] = get_image_url(item.get("poster_path"))
+
+    return {"results": results}
 
 
 # =========================
@@ -86,7 +112,12 @@ def get_details(media_type, content_id):
         "append_to_response": "credits,videos"
     }
 
-    return tmdb_request(f"/{media_type}/{content_id}", params)
+    data = tmdb_request(f"/{media_type}/{content_id}", params)
+
+    data["poster_path"] = get_image_url(data.get("poster_path"))
+    data["backdrop_path"] = get_image_url(data.get("backdrop_path"), BACKDROP_SIZE)
+
+    return data
 
 
 # =========================
@@ -98,8 +129,10 @@ def get_seasons(tv_id):
     data = tmdb_request(f"/tv/{tv_id}")
 
     seasons = data.get("seasons", [])
-
     seasons = [s for s in seasons if s.get("season_number") != 0]
+
+    for s in seasons:
+        s["poster_path"] = get_image_url(s.get("poster_path"))
 
     return seasons
 
@@ -123,7 +156,7 @@ def get_season_episodes(tv_id, season_number):
             "episode_number": ep.get("episode_number"),
             "name": ep.get("name"),
             "overview": ep.get("overview"),
-            "still_path": ep.get("still_path"),
+            "still_path": get_image_url(ep.get("still_path"), BACKDROP_SIZE),
             "vote_average": ep.get("vote_average"),
             "air_date": ep.get("air_date")
         })
@@ -144,10 +177,14 @@ def get_episode_details(tv_id, season_number, episode_number):
         "append_to_response": "credits,videos"
     }
 
-    return tmdb_request(
+    data = tmdb_request(
         f"/tv/{tv_id}/season/{season_number}/episode/{episode_number}",
         params
     )
+
+    data["still_path"] = get_image_url(data.get("still_path"), BACKDROP_SIZE)
+
+    return data
 
 
 # =========================
@@ -155,7 +192,7 @@ def get_episode_details(tv_id, season_number, episode_number):
 # =========================
 
 def get_random_episode():
-    """Pick a random trending TV show, then a random episode from it."""
+
     try:
         trending = get_trending("tv", "week")
         shows = trending.get("results", [])
@@ -163,8 +200,8 @@ def get_random_episode():
         if not shows:
             return None
 
-        # Try up to 5 shows in case one has no seasons
         for _ in range(5):
+
             show = random.choice(shows)
             show_id = show.get("id")
             show_name = show.get("name", "Unknown")
@@ -190,7 +227,7 @@ def get_random_episode():
                 "season": season_number,
                 "episode": episode.get("episode_number", 1),
                 "title": episode.get("name", "Unknown Episode"),
-                "poster_path": show.get("poster_path"),
+                "poster_path": get_image_url(show.get("poster_path")),
                 "still_path": episode.get("still_path"),
                 "vote_average": episode.get("vote_average")
             }
@@ -202,56 +239,25 @@ def get_random_episode():
         return None
 
 
-
 # =========================
 # CHARACTERS / CAST
 # =========================
 
 def get_characters(show_id):
-    """Get cast for a TV show and generate relationship data."""
-    try:
-        data = tmdb_request(f"/tv/{show_id}/credits")
-        cast_full = list(data.get("cast", []))
-        cast_list = cast_full[:20]
 
-        if not cast_list:
-            return {"characters": []}
+    try:
+
+        data = tmdb_request(f"/tv/{show_id}/credits")
+        cast_list = data.get("cast", [])[:20]
 
         characters = []
-        cast_names = [c.get("name", "") for c in cast_list]
 
-        for i, member in enumerate(cast_list):
-            name = member.get("name", f"Character {i}")
-            character = member.get("character", "Unknown Role")
-            image = member.get("profile_path")
-
-            # Generate plausible relationships based on cast order proximity
-            relationships = []
-            for j, other in enumerate(cast_list):
-                if i == j:
-                    continue
-                other_name = other.get("name", "")
-
-                # Characters close in cast order are more likely related
-                distance = abs(i - j)
-                if distance <= 2:
-                    rel_type = random.choice(["ally", "family", "colleague"])
-                    relationships.append({
-                        "target": other_name,
-                        "type": rel_type
-                    })
-                elif distance <= 4 and random.random() > 0.5:
-                    rel_type = random.choice(["rival", "friend", "acquaintance"])
-                    relationships.append({
-                        "target": other_name,
-                        "type": rel_type
-                    })
+        for member in cast_list:
 
             characters.append({
-                "name": name,
-                "character": character,
-                "image": f"https://image.tmdb.org/t/p/w185{image}" if image else None,
-                "relationships": relationships
+                "name": member.get("name"),
+                "character": member.get("character"),
+                "image": get_image_url(member.get("profile_path"), PROFILE_SIZE)
             })
 
         return {"characters": characters}
@@ -266,19 +272,20 @@ def get_characters(show_id):
 # =========================
 
 MOOD_GENRE_MAP = {
-    "happy": [35, 10751, 16],       # Comedy, Family, Animation
-    "thriller": [53, 80, 9648],      # Thriller, Crime, Mystery
-    "mind-bending": [878, 14, 9648], # Sci-Fi, Fantasy, Mystery
-    "emotional": [18, 10749, 10751], # Drama, Romance, Family
-    "action": [28, 10759, 10752],    # Action, Action&Adventure, War
+    "happy": [35, 10751, 16],
+    "thriller": [53, 80, 9648],
+    "mind-bending": [878, 14, 9648],
+    "emotional": [18, 10749, 10751],
+    "action": [28, 10759, 10752],
 }
 
+
 def get_mood_recommendations(mood):
-    """Return TV shows matching a mood using TMDB genre discovery."""
+
     try:
+
         genre_ids = MOOD_GENRE_MAP.get(mood.lower(), [18])
 
-        # Use discover/tv with genre filtering
         params = {
             "with_genres": ",".join(str(g) for g in genre_ids),
             "sort_by": "vote_average.desc",
@@ -287,11 +294,10 @@ def get_mood_recommendations(mood):
         }
 
         data = tmdb_request("/discover/tv", params)
-        res_list = list(data.get("results", []))
-        results = res_list[:12]
+        results = data.get("results", [])[:12]
 
-        # Add media_type for frontend card rendering
         for item in results:
+            item["poster_path"] = get_image_url(item.get("poster_path"))
             item["media_type"] = "tv"
 
         return results
@@ -300,44 +306,54 @@ def get_mood_recommendations(mood):
         print("Mood Recommendations Error:", e)
         return []
 
+
 # =========================
 # SMART RECOMMENDATIONS
 # =========================
 
 def get_smart_recommendations(media_type, content_id):
-    """
-    Get similar items using TMDB's recommendations endpoint first,
-    which factors in keywords, cast, and genres.
-    Fallback to similar endpoint if not enough results.
-    """
+
     try:
+
         data = tmdb_request(f"/{media_type}/{content_id}/recommendations")
         recs = data.get("results", [])
-        
+
         if len(recs) < 5:
             similar = tmdb_request(f"/{media_type}/{content_id}/similar")
             recs.extend(similar.get("results", []))
-            
+
+        for r in recs:
+            r["poster_path"] = get_image_url(r.get("poster_path"))
+
         return recs
+
     except Exception as e:
         print("Smart Recommendations Error:", e)
         return []
+
 
 # =========================
 # BOLLYWOOD SECTION
 # =========================
 
 def get_trending_bollywood():
-    """Fetch trending Bollywood movies (Hindi language, India region)."""
+
     try:
-        # Fetching popular Hindi movies from India
+
         params = {
             "with_original_language": "hi",
             "region": "IN",
             "sort_by": "popularity.desc"
         }
+
         data = tmdb_request("/discover/movie", params)
-        return data.get("results", [])
+        results = data.get("results", [])
+
+        for r in results:
+            r["poster_path"] = get_image_url(r.get("poster_path"))
+
+        return results
+
     except Exception as e:
         print("Bollywood Trending Error:", e)
         return []
@@ -348,12 +364,13 @@ def get_trending_bollywood():
 # =========================
 
 def get_blur_game_item(category):
-    """Fetch a random item for the blur guess game based on category."""
+
     try:
+
         page = random.randint(1, 5)
         params = {"page": page}
         endpoint = "/movie/popular"
-        
+
         if category == 'bollywood':
             endpoint = "/discover/movie"
             params.update({"with_original_language": "hi", "region": "IN"})
@@ -368,23 +385,18 @@ def get_blur_game_item(category):
 
         data = tmdb_request(endpoint, params)
         results = data.get("results", [])
-        
-        if not results:
-            # Fallback to simple popular if no results
-            data = tmdb_request("/movie/popular", {"page": 1})
-            results = data.get("results", [])
-            
+
         item = random.choice(results)
-        
-        # Determine title (movies use title, tv uses name)
+
         title = item.get("title") or item.get("name")
-        image = item.get("poster_path") or item.get("backdrop_path")
-        
+        image = get_image_url(item.get("poster_path") or item.get("backdrop_path"), BACKDROP_SIZE)
+
         return {
             "title": title,
             "image": image,
             "id": item.get("id")
         }
+
     except Exception as e:
         print("Blur Game Item Error:", e)
         return None
@@ -395,12 +407,13 @@ def get_blur_game_item(category):
 # =========================
 
 def get_scene_guess_item(category):
-    """Fetch a random item with a backdrop/still for the scene guess game."""
+
     try:
+
         page = random.randint(1, 10)
         params = {"page": page}
         endpoint = "/movie/popular"
-        
+
         if category == 'bollywood':
             endpoint = "/discover/movie"
             params.update({"with_original_language": "hi", "region": "IN"})
@@ -415,24 +428,21 @@ def get_scene_guess_item(category):
 
         data = tmdb_request(endpoint, params)
         results = [r for r in data.get("results", []) if r.get("backdrop_path")]
-        
-        if not results:
-            data = tmdb_request("/movie/popular", {"page": 1})
-            results = [r for r in data.get("results", []) if r.get("backdrop_path")]
-            
+
         if not results:
             return None
-            
+
         item = random.choice(results)
-        
+
         title = item.get("title") or item.get("name")
-        image = item.get("backdrop_path")
-        
+        image = get_image_url(item.get("backdrop_path"), BACKDROP_SIZE)
+
         return {
             "title": title,
             "image": image,
             "id": item.get("id")
         }
+
     except Exception as e:
         print("Scene Game Item Error:", e)
         return None

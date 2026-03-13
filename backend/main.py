@@ -143,7 +143,9 @@ class WatchEpisodeCreate(BaseModel):
 # ROOT
 # =========================
 
-
+@app.get("/")
+def root():
+    return {"message": "SideQuest API Running"}
 
 
 # =========================

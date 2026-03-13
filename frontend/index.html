@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <!-- Cinematic Intro Overlay -->
     <div id="intro-overlay">
@@ -26,17 +28,26 @@
             <a href="profile.html">Profile & Stats</a>
         </nav>
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search movies, tv, anime..." onkeypress="if(event.key === 'Enter') performSearch()">
+            <input type="text" id="searchInput" placeholder="Search movies, tv, anime..."
+                onkeypress="if(event.key === 'Enter') performSearch()">
             <button onclick="performSearch()">Search</button>
         </div>
     </header>
 
     <!-- Hero Section / Spin Wheel Discovery -->
-    <div style="text-align: center; padding: 60px 20px; background: linear-gradient(180deg, rgba(148,9,229,0.1), transparent); position: relative; overflow: hidden;">
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(148,9,229,0.1), transparent 70%);"></div>
-        <h1 style="font-size: 3.5rem; margin-bottom: 20px; font-weight: 800; text-shadow: 0 0 20px rgba(148,9,229,0.3);">Discover Your Next Obsession</h1>
-        <p style="color: #bbb; margin-bottom: 35px; font-size: 1.25rem; max-width: 600px; margin-left: auto; margin-right: auto;">Don't just watch anything. Let our interactive spin wheel find the perfect entertainment for your mood.</p>
-        <button class="btn suprise-btn pulsate-ai" id="openSpinWheelBtn" onclick="openSpinWheel()" style="font-size: 1.3rem; padding: 15px 40px; border-radius: 50px;">
+    <div
+        style="text-align: center; padding: 60px 20px; background: linear-gradient(180deg, rgba(148,9,229,0.1), transparent); position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(148,9,229,0.1), transparent 70%);">
+        </div>
+        <h1
+            style="font-size: 3.5rem; margin-bottom: 20px; font-weight: 800; text-shadow: 0 0 20px rgba(148,9,229,0.3);">
+            Discover Your Next Obsession</h1>
+        <p
+            style="color: #bbb; margin-bottom: 35px; font-size: 1.25rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Don't just watch anything. Let our interactive spin wheel find the perfect entertainment for your mood.</p>
+        <button class="btn suprise-btn pulsate-ai" id="openSpinWheelBtn" onclick="openSpinWheel()"
+            style="font-size: 1.3rem; padding: 15px 40px; border-radius: 50px;">
             🎲 Surprise Me
         </button>
     </div>
@@ -45,8 +56,9 @@
     <div id="spinModal" class="modal">
         <div class="modal-content spin-modal-content">
             <span class="close" onclick="closeSpinWheel()">&times;</span>
-            <h2 style="text-align: center; margin-bottom: 30px; color: var(--accent-color);">Spin for a Recommendation! 🎡</h2>
-            
+            <h2 style="text-align: center; margin-bottom: 30px; color: var(--accent-color);">Spin for a Recommendation!
+                🎡</h2>
+
             <div class="wheel-container">
                 <div id="wheel-pointer"></div>
                 <canvas id="wheel-canvas" width="400" height="400"></canvas>
@@ -58,14 +70,15 @@
             </div>
 
             <div id="spin-actions" class="spin-actions" style="display: none; margin-top: 25px; text-align: center;">
-                <button class="btn" onclick="spinWheel()" style="background: linear-gradient(45deg, #00d2ff, #3a7bd5);">🔄 Spin Again</button>
+                <button class="btn" onclick="spinWheel()"
+                    style="background: linear-gradient(45deg, #00d2ff, #3a7bd5);">🔄 Spin Again</button>
                 <button id="viewDetailsBtn" class="btn" onclick="viewSpinResult()">📄 View Details</button>
             </div>
         </div>
     </div>
 
     <div class="container">
-        
+
         <!-- Mood Recommendations -->
         <h2 class="section-title">How are you feeling?</h2>
         <div class="mood-container">
@@ -75,7 +88,7 @@
             <button class="mood-btn" onclick="loadMood('horror-night')">👻 Horror Night</button>
             <button class="mood-btn" onclick="loadMood('comedy-night')">😆 Comedy Night</button>
         </div>
-        
+
         <div id="mood-results" style="display: none; margin-bottom: 40px;">
             <h3 id="mood-title" style="margin-bottom: 15px; color: var(--accent-color);">Recommendations</h3>
             <div class="grid" id="mood-grid"></div>
@@ -111,7 +124,8 @@
 
         <!-- TRENDING DISCUSSIONS -->
         <h2 class="section-title" style="margin-top: 50px;">Trending Discussions 💬</h2>
-        <div class="grid" id="trending-discussions" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        <div class="grid" id="trending-discussions"
+            style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
             <p>Loading discussions...</p>
         </div>
 
@@ -171,14 +185,15 @@
         <!-- AI HIDDEN GEMS -->
         <div class="section-header">
             <h2 class="section-title" style="color: #00d2ff;">Hidden Gems 💎</h2>
-            <button class="shuffle-btn" id="shuffleGemsBtn" onclick="shuffleHiddenGemsUI()" style="color: #00d2ff; border-color: rgba(0, 210, 255, 0.3);">🔀 Shuffle</button>
+            <button class="shuffle-btn" id="shuffleGemsBtn" onclick="shuffleHiddenGemsUI()"
+                style="color: #00d2ff; border-color: rgba(0, 210, 255, 0.3);">🔀 Shuffle</button>
         </div>
         <div class="grid" id="ai-hidden-gems">
             <p>Loading gems...</p>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
+    <script src="js/api.js?v=2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const moviesContainer = document.getElementById('trending-movies');
@@ -225,7 +240,7 @@
         async function generateRandomEpisode() {
             const btn = document.getElementById("surpriseMeBtn");
             const loader = document.getElementById("random-loading");
-            
+
             btn.style.display = "none";
             loader.style.display = "block";
 
@@ -257,11 +272,11 @@
 
             try {
                 const results = await api.getMoodMovieFinder(mood);
-                
+
                 if (results && results.length > 0) {
                     title.innerText = `Perfect picks for your mood`;
                     grid.innerHTML = results.map(item => createUserDiscoveryCard(item, 'mood')).join('');
-                    
+
                     // Smooth scroll to results
                     container.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
@@ -311,7 +326,7 @@
         function createUserDiscoveryCard(item, displayMode) {
             let metaDisplay = "";
             let ratingVal = item.average_rating || item.rating || 0;
-            
+
             if (displayMode === 'recent') {
                 metaDisplay = `⭐ ${ratingVal.toFixed(1)} (${item.votes_last_7_days} recent votes)`;
             } else if (displayMode === 'count') {
@@ -326,7 +341,9 @@
 
             return `
                 <div class="card" onclick="window.location.href='details.html?type=${item.type}&id=${item.id}'">
-                    <img src="${api.getImageUrl(item.poster)}" alt="${item.title.replace(/"/g, '&quot;')}">
+                   <img src="${api.getImageUrl(item.poster)}"
+alt="${item.title.replace(/"/g, '&quot;')}"
+onerror="this.onerror=null;this.src='https://placehold.co/300x169?text=No+Image';">
                     <div class="card-content">
                         <div class="card-title">${item.title}</div>
                         <div class="card-meta">
@@ -336,13 +353,13 @@
                 </div>
             `;
         }
-        
+
         // LOAD AI RECOMMENDATIONS
         async function loadBecauseYouWatched() {
             try {
                 const results = await api.getBecauseYouWatched(1); // User ID 1 mocking
                 const container = document.getElementById("advanced-recs");
-                
+
                 if (results && results.length > 0) {
                     container.innerHTML = results.map(item => createUserDiscoveryCard(item, 'ai')).join('');
                 } else {
@@ -375,7 +392,7 @@
                 } else {
                     container.innerHTML = "<p>No trending discussions currently.</p>";
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error("Discussion load error:", e);
             }
         }
@@ -507,7 +524,9 @@
                     container.style.display = "block";
                     movieInfo.innerHTML = `
                         <div style="display: flex; gap: 15px; align-items: start;">
-                            <img src="${api.getImageUrl(target.poster_path)}" style="width: 100px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+                           <img src="${api.getImageUrl(target.poster_path)}"
+style="width: 100px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);"
+onerror="this.onerror=null;this.src='https://placehold.co/300x169?text=No+Image';">
                             <div>
                                 <h3 style="margin-bottom: 5px;">${target.title}</h3>
                                 <p style="font-size: 0.8rem; color: #888; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">${target.overview}</p>
@@ -523,7 +542,7 @@
                 console.error("Featured debate error:", e);
             }
         }
-        
+
         async function loadTrendingBollywood() {
             const container = document.getElementById("trending-bollywood");
             try {
@@ -573,7 +592,7 @@
             setTimeout(() => {
                 overlay.classList.add('intro-hidden');
                 body.style.overflow = 'auto';
-                
+
                 // Remove from DOM after transition
                 setTimeout(() => {
                     overlay.remove();
@@ -584,7 +603,7 @@
         async function shuffleChallengesUI() {
             const container = document.getElementById("ai-challenges");
             const btn = document.getElementById("shuffleChallengesBtn");
-            
+
             btn.disabled = true;
             btn.innerText = "🌀 Shuffling...";
             container.classList.add("fade-out");
@@ -627,4 +646,5 @@
         }
     </script>
 </body>
+
 </html>

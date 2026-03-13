@@ -118,9 +118,12 @@ const api = {
      * Helper: Construct Image URL
      */
     getImageUrl(path, size = "w500") {
-        if (!path) return "https://via.placeholder.com/500x750?text=No+Poster";
-        if (size === "original") return "https://image.tmdb.org/t/p/original" + path;
-        return IMAGE_BASE + size + path;
+        const fallback = "https://placehold.co/500x750?text=No+Poster";
+
+        if (!path) return fallback;
+
+        const base = "https://image.tmdb.org/t/p/";
+        return `${base}${size}${path}`;
     },
 
     /**
@@ -144,8 +147,8 @@ const api = {
 
         return `
             <div class="card" onclick="window.location.href='details.html?type=${type}&id=${item.id}'">
-                <img src="${item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://placehold.co/500x750?text=No+Poster'}"
-onerror="this.onerror=null;this.src='https://placehold.co/500x750?text=No+Poster';"
+                <img src="${getImageUrl(item.poster_path)}"
+onerror="this.src='https://placehold.co/500x750?text=No+Poster'">"
 alt="${title.replace(/"/g, '&quot;')}">
                 <div class="card-content">
                     <div class="card-title">${title}</div>

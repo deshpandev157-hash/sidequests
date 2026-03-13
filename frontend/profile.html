@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile & Achievements - SideQuest</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> <!-- Using Material Icons for achievements -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Using Material Icons for achievements -->
 </head>
+
 <body>
     <header>
         <div class="logo"><a href="index.html">SideQuest</a></div>
@@ -17,7 +20,8 @@
             <a href="profile.html" style="color: var(--accent-color);">Profile & Stats</a>
         </nav>
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search..." onkeypress="if(event.key === 'Enter') performSearch()">
+            <input type="text" id="searchInput" placeholder="Search..."
+                onkeypress="if(event.key === 'Enter') performSearch()">
             <button onclick="performSearch()">Search</button>
         </div>
     </header>
@@ -28,7 +32,7 @@
         </div>
 
         <div id="profile-content" style="display: none;">
-            
+
             <div class="profile-header">
                 <div>
                     <h1 style="font-size: 2.5rem; margin-bottom: 5px;">Your Profile</h1>
@@ -72,7 +76,7 @@
             try {
                 // Feature 4: Using User ID 1 normally, but can be adapted for auth
                 const data = await api.getUserAchievements(1);
-                
+
                 document.getElementById('profile-loading').style.display = 'none';
                 document.getElementById('profile-content').style.display = 'block';
 
@@ -85,7 +89,7 @@
                 // Render Achievements
                 const achList = document.getElementById('achievements-list');
                 const achievements = data.achievements || [];
-                
+
                 if (achievements.length === 0) {
                     achList.innerHTML = "<p>No achievements data found.</p>";
                 } else {
@@ -189,4 +193,5 @@
         }
     </script>
 </body>
+
 </html>

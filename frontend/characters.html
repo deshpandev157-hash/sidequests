@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <!-- Vis.js Network for Feature 3 -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
+
 <body>
     <header>
         <div class="logo"><a href="index.html">SideQuest</a></div>
@@ -18,7 +20,8 @@
             <a href="profile.html">Profile & Stats</a>
         </nav>
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search..." onkeypress="if(event.key === 'Enter') performSearch()">
+            <input type="text" id="searchInput" placeholder="Search..."
+                onkeypress="if(event.key === 'Enter') performSearch()">
             <button onclick="performSearch()">Search</button>
         </div>
     </header>
@@ -33,7 +36,8 @@
         </div>
 
         <div id="network-container">
-            <h3 id="network-loading" style="text-align:center; padding: 100px; color: var(--accent-color);">Constructing Map...</h3>
+            <h3 id="network-loading" style="text-align:center; padding: 100px; color: var(--accent-color);">Constructing
+                Map...</h3>
         </div>
     </div>
 
@@ -102,15 +106,15 @@
                     rels.forEach(rel => {
                         const targetId = nodeMap[rel.target];
                         if (targetId && sourceId !== targetId) {
-                            
+
                             // Color mapping based on relationship type
                             let edgeColor = '#666';
                             let edgeDashes = false;
-                            
+
                             if (rel.type === 'family') edgeColor = '#ffbb00';
                             if (rel.type === 'ally' || rel.type === 'friend') edgeColor = '#00ff88';
                             if (rel.type === 'rival') { edgeColor = '#ff4444'; edgeDashes = true; }
-                            
+
                             edges.add({
                                 from: sourceId,
                                 to: targetId,
@@ -161,4 +165,5 @@
         }
     </script>
 </body>
+
 </html>
