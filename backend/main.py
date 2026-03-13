@@ -1,4 +1,4 @@
-import auth
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -8,9 +8,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from pathlib import Path
-from database import engine, Base, get_db
-import models
-import tmdb_service
+from backend import auth
+from backend.database import engine, Base, get_db
+from backend import models
+from backend import tmdb_service
 
 from pydantic import BaseModel
 from typing import Optional, List
