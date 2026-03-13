@@ -1,6 +1,10 @@
-/* js/api.js */
-const API_BASE = "http://127.0.0.1:8000";
-const IMAGE_BASE = "https://image.tmdb.org/t/p/";
+const API_BASE =
+    window.location.hostname === "127.0.0.1" ||
+        window.location.hostname === "localhost" ||
+        window.location.protocol === "file:"
+        ? "http://127.0.0.1:8000"
+        : "https://sidequests-1-p5b3.onrender.com";
+const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
 /**
  * Generic API fetch helper
@@ -128,7 +132,7 @@ const api = {
         const date = item.release_date || item.first_air_date || "";
         const year = date ? date.split("-")[0] : "";
         const rating = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
-        
+
         let type = "movie";
         if (item.media_type) {
             type = item.media_type;

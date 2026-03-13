@@ -7,6 +7,7 @@ from sqlalchemy import func
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from pathlib import Path
 from database import engine, Base, get_db
 import models
 import tmdb_service
@@ -142,9 +143,7 @@ class WatchEpisodeCreate(BaseModel):
 # ROOT
 # =========================
 
-@app.get("/")
-def home():
-    return {"message": "SideQuest API Running"}
+
 
 
 # =========================
@@ -884,8 +883,11 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "user_id": db_user.id
     }
 
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 @app.get("/")
 def read_index():
-    return FileResponse("frontend/index.html")
+    return FileResponse(FRONTEND_DIR / "index.html")
