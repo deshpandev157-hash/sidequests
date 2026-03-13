@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from database import engine, Base, get_db
 import models
 import tmdb_service
@@ -56,7 +59,12 @@ app.include_router(bollywood_router.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:8000",
+        "https://sidequest-movie.netlify.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -875,3 +883,9 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "access_token": token,
         "user_id": db_user.id
     }
+
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+@app.get("/")
+def read_index():
+    return FileResponse("frontend/index.html")
