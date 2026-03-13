@@ -1,9 +1,12 @@
-const API_BASE =
+const isLocal =
     window.location.hostname === "127.0.0.1" ||
-        window.location.hostname === "localhost" ||
-        window.location.protocol === "file:"
-        ? "http://127.0.0.1:8000"
-        : "https://sidequests-1-p5b3.onrender.com";
+    window.location.hostname === "localhost" ||
+    window.location.protocol === "file:";
+
+const API_BASE = isLocal
+    ? "http://127.0.0.1:8000"
+    : "https://sidequests-1-p5b3.onrender.com";
+
 const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
 /**

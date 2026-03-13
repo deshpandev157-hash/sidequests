@@ -60,12 +60,7 @@ app.include_router(bollywood_router.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "http://localhost:8000",
-        "https://sidequest-movie.netlify.app"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -143,9 +138,7 @@ class WatchEpisodeCreate(BaseModel):
 # ROOT
 # =========================
 
-@app.get("/")
-def root():
-    return {"message": "SideQuest API Running"}
+
 
 
 # =========================
