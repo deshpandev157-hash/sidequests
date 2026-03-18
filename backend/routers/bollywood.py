@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-import tmdb_service
+from backend import tmdb_service
 
 router = APIRouter(prefix="/bollywood", tags=["Bollywood"])
 

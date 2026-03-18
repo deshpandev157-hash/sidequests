@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SideQuest - Spin the Wheel</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Side<span>Quest</span></div>
+            <p class="subtitle">Discover Your Next Obsession</p>
+        </header>
+
+        <main>
+            <section class="wheel-section">
+                <div class="pointer"></div>
+                <div class="wheel-container">
+                    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+                </div>
+                <button id="spinBtn">SPIN THE WHEEL</button>
+                <p id="status">Predicting your favorite content...</p>
+
+                <div id="loadingOverlay" class="hidden">
+                    <div class="spinner"></div>
+                    <p>Fetching Your Lucky Pick...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <audio id="tickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+    <script src="../js/api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

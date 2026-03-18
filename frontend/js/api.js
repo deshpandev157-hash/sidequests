@@ -1,11 +1,7 @@
-const isLocal =
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "localhost" ||
-    window.location.protocol === "file:";
-
-const API_BASE = isLocal
-    ? "http://127.0.0.1:8000"
-    : "https://sidequests-1-p5b3.onrender.com";
+const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8001'
+    : 'https://sidequests-1-p5b3.onrender.com';
+console.log("API_BASE:", API_BASE);
 
 const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
@@ -27,6 +23,37 @@ async function apiFetch(url) {
 }
 
 const api = {
+    /**
+     * AUTHENTICATION
+     */
+    async signup(data) {
+        try {
+            const res = await fetch(`${API_BASE}/auth/signup`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+            return await res.json();
+        } catch (err) {
+            console.error("Signup error:", err);
+            return null;
+        }
+    },
+
+    async login(data) {
+        try {
+            const res = await fetch(`${API_BASE}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+            return await res.json();
+        } catch (err) {
+            console.error("Login error:", err);
+            return null;
+        }
+    },
+
     /**
      * GET /trending/{type}
      */
@@ -150,8 +177,8 @@ const api = {
 
         return `
             <div class="card" onclick="window.location.href='details.html?type=${type}&id=${item.id}'">
-                <img src="${getImageUrl(item.poster_path)}"
-onerror="this.src='https://placehold.co/500x750?text=No+Poster'">"
+                <img src="${this.getImageUrl(item.poster_path)}"
+onerror="this.src='https://placehold.co/500x750?text=No+Poster'"
 alt="${title.replace(/"/g, '&quot;')}">
                 <div class="card-content">
                     <div class="card-title">${title}</div>

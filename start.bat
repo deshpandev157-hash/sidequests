@@ -1,0 +1,6 @@
+@echo off
+echo Starting SideQuest Backend...
+start cmd /k "cd /d C:\Users\Admin\Desktop\SideQuest && python -m uvicorn backend.main:app --reload"
+timeout /t 3 /nobreak
+echo Opening SideQuest Frontend...
+start "" "http://127.0.0.1:8000"

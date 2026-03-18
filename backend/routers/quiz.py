@@ -4,10 +4,10 @@ from datetime import datetime
 from pydantic import BaseModel
 import random
 
-from database import get_db
-import models
-import tmdb_service
-import ai_service
+from backend.database import get_db
+from backend import models
+from backend import tmdb_service
+from backend import ai_service
 
 router = APIRouter(prefix="/quiz", tags=["Quiz"])
 

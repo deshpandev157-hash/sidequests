@@ -98,6 +98,7 @@
     </div>
 
     <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
     <script>
         let currentId = null;
         let currentType = null;
@@ -133,11 +134,14 @@
                 loadAiDebate(currentType, currentId);
 
                 // AI RECOMMENDATIONS: Track Watch History
-                api.addToWatchHistory({
-                    user_id: 1,
-                    content_id: parseInt(currentId),
-                    content_type: currentType
-                });
+                const user = auth.getUser();
+                if (user) {
+                    api.addToWatchHistory({
+                        user_id: user.id,
+                        content_id: parseInt(currentId),
+                        content_type: currentType
+                    });
+                }
 
             } catch (err) {
                 console.error(err);
@@ -326,8 +330,13 @@
         }
         
         async function likeReview(reviewId) {
-            const userId = 1; // Default stub user
-            await api.likeReview(reviewId, userId);
+            const user = auth.getUser();
+            if (!user) {
+                alert("Please login to like reviews.");
+                window.location.href = 'login.html';
+                return;
+            }
+            await api.likeReview(reviewId, user.id);
             loadReviews(currentType, currentId); // refresh
         }
 
@@ -344,8 +353,16 @@
         }
 
         async function submitRating(val) {
+            const user = auth.getUser();
+            if (!user) {
+                alert("Please login to rate content.");
+                window.location.href = 'login.html';
+                return;
+            }
+
             try {
                 const payload = {
+                    user_id: user.id,
                     content_id: parseInt(currentId),
                     content_type: currentType,
                     rating: val
@@ -364,26 +381,37 @@
         }
 
         async function submitReview() {
+            const user = auth.getUser();
+            if (!user) {
+                alert("Please login to post reviews.");
+                window.location.href = 'login.html';
+                return;
+            }
+
             const text = document.getElementById("reviewText").value;
-            const ratingSelector = document.getElementById("reviewRating").value; // Assuming rating is bound
+            const ratingVal = document.getElementById("reviewRating").value;
 
             if (!text.trim()) {
                 alert("Please write something first!");
                 return;
             }
 
+            const params = new URLSearchParams(window.location.search);
+            const contentId = parseInt(params.get('id'));
+            const contentType = params.get('type');
+
             const reviewData = {
-                user_id: 1, // Mock user ID for now
-                content_id: parseInt(currentId),
-                content_type: currentType,
-                rating: parseFloat(ratingSelector),
+                user_id: user.id,
+                content_id: contentId,
+                content_type: contentType,
+                rating: parseInt(ratingVal, 10),
                 review_text: text
             };
 
             const result = await api.submitCommunityReview(reviewData);
             if (result) {
                 document.getElementById("reviewText").value = "";
-                loadReviews(currentType, currentId);
+                loadReviews(contentType, contentId);
                 alert("Review posted!");
             } else {
                 alert("Failed to post review. Is the server running?");

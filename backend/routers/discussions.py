@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
 
-from database import get_db
-import models
-import tmdb_service
+from backend.database import get_db
+from backend import models
+from backend import tmdb_service
 
 router = APIRouter(prefix="/discussions", tags=["Discussions"])
 

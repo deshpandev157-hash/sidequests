@@ -1,0 +1,255 @@
+:root {
+    --bg-color: #0c0c0c;
+    --card-bg: #1a1a1a;
+    --neon-accent: #9409e5;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --border-glow: 0 0 15px rgba(148, 9, 229, 0.4);
+    --neon-pulse: 0 0 25px rgba(148, 9, 229, 0.8);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Roboto', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 50px;
+}
+
+.logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 5px;
+    text-shadow: 0 0 15px rgba(148, 9, 229, 0.6);
+}
+
+.logo span {
+    color: var(--neon-accent);
+}
+
+.subtitle {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+/* Main Layout */
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 60px;
+}
+
+/* Wheel Section */
+.wheel-section {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wheel-container {
+    padding: 10px;
+    background: transparent;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: var(--border-glow);
+    animation: glowPulse 2s infinite alternate ease-in-out;
+}
+
+@keyframes glowPulse {
+    from { box-shadow: 0 0 10px rgba(148, 9, 229, 0.3); }
+    to { box-shadow: 0 0 25px rgba(148, 9, 229, 0.7); }
+}
+
+#wheelCanvas {
+    display: block;
+}
+
+.pointer {
+    width: 40px;
+    height: 40px;
+    background: white;
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    z-index: 10;
+    border: 3px solid var(--bg-color);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+    border-radius: 0 0 0 10px;
+}
+
+/* Spin Button */
+#spinBtn {
+    margin-top: 40px;
+    background: transparent;
+    border: 2px solid var(--neon-accent);
+    color: var(--neon-accent);
+    padding: 15px 45px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: var(--border-glow);
+}
+
+#spinBtn:hover:not(:disabled) {
+    background: var(--neon-accent);
+    color: white;
+    box-shadow: var(--neon-pulse);
+    transform: scale(1.1);
+}
+
+#spinBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #555;
+    color: #555;
+    box-shadow: none;
+}
+
+#loadingStatus {
+    margin-top: 15px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Result Section */
+#resultSection {
+    width: 100%;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease-out;
+}
+
+#resultSection.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#resultSection h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: var(--neon-accent);
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    justify-items: center;
+}
+
+/* Overriding api.createMediaCard styles for standalone page compatibility if needed */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 240px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #333;
+    animation: cardIn 0.5s forwards cubic-bezier(0, 0.6, 0.45, 1);
+    cursor: pointer;
+}
+
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(148, 9, 229, 0.4);
+    border-color: var(--neon-accent);
+}
+
+.card img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+}
+
+.card-content {
+    padding: 15px;
+    text-align: left;
+}
+
+/* Loading overlay */
+#loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(148, 9, 229, 0.2);
+    border-top: 5px solid var(--neon-accent);
+    border-radius: 50%;
+    animation: spinRow 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spinRow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+@media screen and (max-width: 600px) {
+    .logo { font-size: 2.2rem; }
+    #wheelCanvas { width: 320px; height: 320px; }
+    .wheel-section { max-width: 320px; }
+}

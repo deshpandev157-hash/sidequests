@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
-from database import get_db
-import models
+from backend.database import get_db
+from backend import models
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 

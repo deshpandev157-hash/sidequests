@@ -27,6 +27,7 @@ from backend.routers import quiz as quiz_router
 from backend.routers import challenges as challenges_router
 from backend.routers import ai as ai_router
 from backend.routers import bollywood as bollywood_router
+from backend.routers import auth as auth_router
 
 
 # =========================
@@ -53,7 +54,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -72,6 +73,7 @@ app.include_router(quiz_router.router)
 app.include_router(challenges_router.router)
 app.include_router(ai_router.router)
 app.include_router(bollywood_router.router)
+app.include_router(auth_router.router)
 
 
 
@@ -90,6 +92,7 @@ class ReviewCreate(BaseModel):
 
 
 class ContentRatingCreate(BaseModel):
+    user_id: int
     content_id: int
     content_type: str
     rating: int
@@ -122,15 +125,6 @@ class WatchlistAdd(BaseModel):
     media_type: str
 
 
-class UserSignup(BaseModel):
-    username: str
-    email: str
-    password: str
-
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
 
 
 class WatchEpisodeCreate(BaseModel):
@@ -266,8 +260,7 @@ def get_full_show(tv_id: int):
 def rate_content(data: ContentRatingCreate, db: Session = Depends(get_db)):
     """Rate a movie or TV show 1-10."""
     
-    # We enforce a pseudo user ID for now, normally grabbed from Auth token
-    user_id = 1
+    user_id = data.user_id
 
     # Check for existing vote
     existing = db.query(models.ContentRating).filter(
@@ -844,47 +837,6 @@ def get_watchlist(user_id: int, db: Session = Depends(get_db)):
     ).all()
 
 
-# =========================
-# AUTH
-# =========================
-
-@app.post("/signup")
-def signup(user: UserSignup, db: Session = Depends(get_db)):
-
-    hashed_password = auth.hash_password(user.password)
-
-    new_user = models.User(
-        username=user.username,
-        email=user.email,
-        password_hash=hashed_password
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return {"message": "User created", "user_id": new_user.id}
-
-
-@app.post("/login")
-def login(user: UserLogin, db: Session = Depends(get_db)):
-
-    db_user = db.query(models.User).filter(
-        models.User.email == user.email
-    ).first()
-
-    if not db_user:
-        raise HTTPException(status_code=400, detail="User not found")
-
-    if not auth.verify_password(user.password, db_user.password_hash):
-        raise HTTPException(status_code=400, detail="Incorrect password")
-
-    token = auth.create_access_token({"user_id": db_user.id})
-
-    return {
-        "access_token": token,
-        "user_id": db_user.id
-    }
 
 # ==================================
 # SERVE FRONTEND (STATIC) - MUST BE AT THE BOTTOM
