@@ -50,19 +50,18 @@ app = FastAPI(
 # =========================
 # CORS
 # =========================
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://sidequest-movie.netlify.app",
         "http://127.0.0.1:5500",
         "http://127.0.0.1:8001",
-        "*"
     ],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # =========================
