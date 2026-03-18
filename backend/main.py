@@ -6,6 +6,7 @@ from sqlalchemy import func
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+import os
 
 from pathlib import Path
 from backend import auth
@@ -17,15 +18,15 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
 
-from routers import reviews as reviews_router
-from routers import discussions as discussions_router
-from routers import awards as awards_router
-from routers import discover as discover_router
-from routers import games as games_router
-from routers import quiz as quiz_router
-from routers import challenges as challenges_router
-from routers import ai as ai_router
-from routers import bollywood as bollywood_router
+from backend.routers import reviews as reviews_router
+from backend.routers import discussions as discussions_router
+from backend.routers import awards as awards_router
+from backend.routers import discover as discover_router
+from backend.routers import games as games_router
+from backend.routers import quiz as quiz_router
+from backend.routers import challenges as challenges_router
+from backend.routers import ai as ai_router
+from backend.routers import bollywood as bollywood_router
 
 
 # =========================
@@ -45,16 +46,6 @@ app = FastAPI(
     description="Movie, TV and Anime tracking API with achievements and recommendations"
 )
 
-app.include_router(reviews_router.router)
-app.include_router(discussions_router.router)
-app.include_router(awards_router.router)
-app.include_router(discover_router.router)
-app.include_router(games_router.router)
-app.include_router(quiz_router.router)
-app.include_router(challenges_router.router)
-app.include_router(ai_router.router)
-app.include_router(bollywood_router.router)
-
 # =========================
 # CORS
 # =========================
@@ -66,6 +57,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# =========================
+# ROUTERS
+# =========================
+
+app.include_router(reviews_router.router)
+app.include_router(discussions_router.router)
+app.include_router(awards_router.router)
+app.include_router(discover_router.router)
+app.include_router(games_router.router)
+app.include_router(quiz_router.router)
+app.include_router(challenges_router.router)
+app.include_router(ai_router.router)
+app.include_router(bollywood_router.router)
+
 
 
 # =========================
@@ -879,11 +886,12 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "user_id": db_user.id
     }
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR / "frontend"
+# ==================================
+# SERVE FRONTEND (STATIC) - MUST BE AT THE BOTTOM
+# ==================================
 
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "../frontend"))
 
-@app.get("/")
-def read_index():
-    return FileResponse(FRONTEND_DIR / "index.html")
+# Mount "/" to frontend with html=True so it handles index.html and CSS relative paths
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="static")
