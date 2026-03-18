@@ -9,10 +9,10 @@ from fastapi.responses import FileResponse
 import os
 
 from pathlib import Path
-import auth
-import models
-import tmdb_service
-from database import engine, Base, get_db
+from . import auth
+from . import models
+from . import tmdb_service
+from .database import engine, Base, get_db
 
 from pydantic import BaseModel
 from typing import Optional, List
