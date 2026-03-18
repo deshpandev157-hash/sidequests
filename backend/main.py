@@ -9,25 +9,25 @@ from fastapi.responses import FileResponse
 import os
 
 from pathlib import Path
-from backend import auth
-from backend import models
-from backend import tmdb_service
-from backend.database import engine, Base, get_db
+from auth
+from models
+from tmdb_service
+from database import engine, Base, get_db
 
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
 
-from backend.routers import reviews as reviews_router
-from backend.routers import discussions as discussions_router
-from backend.routers import awards as awards_router
-from backend.routers import discover as discover_router
-from backend.routers import games as games_router
-from backend.routers import quiz as quiz_router
-from backend.routers import challenges as challenges_router
-from backend.routers import ai as ai_router
-from backend.routers import bollywood as bollywood_router
-from backend.routers import auth as auth_router
+from routers import reviews as reviews_router
+from routers import discussions as discussions_router
+from routers import awards as awards_router
+from routers import discover as discover_router
+from routers import games as games_router
+from routers import quiz as quiz_router
+from routers import challenges as challenges_router
+from routers import ai as ai_router
+from routers import bollywood as bollywood_router
+from routers import auth as auth_router
 
 
 # =========================
